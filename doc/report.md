@@ -6,14 +6,14 @@
 
 The following report describes the design of a linter for **nginx** configuration
 files, written in Haskell. **nginx** is a widely used HTTP and reverse proxy
-server. The motivation for this project was to further the author's understanding
+server. The motivation behind this project was to further the author's understanding
 of functional parsing techniques, and apply them in a real-world context.
 
 # Syntax definition
 
 The **nginx** configuration uses a C-like syntax consisting of directives,
 which let you specify the behaviour of the server, and blocks, which define
-contexts in which these directives apply.
+contexts where these directives apply.
 
 A directive consists of an identifier followed by a list of arguments and a
 semicolon.
@@ -56,7 +56,7 @@ An additional library, `ansi-terminal`, was used for colored console output.
 # Difficulties encountered
 
 The most difficult part of this project  was to find a proper abstraction for
-constructing linter rules, which avoided unnecesary boilerplate. The author
+constructing linter rules, which avoided unnecessary boilerplate. The author
 considered the use of Monads, Zippers and Traversable, but finally settled for
 simple composition of filter functions, which proved good enough for the task
 at hand and kept the mental overhead at a reasonable level.
@@ -77,19 +77,19 @@ extension to GHC.
 
 # Future extensions
 
-Throught the duration of the project, the author kept a To Do list with ideas
+Throughout the duration of the project, the author kept a To Do list with ideas
 for future extensions. A sample of them has been reproduced below:
 
- * Add rules which depend on the presence or absense of siblings or otherwise
+ * Add rules which depend on the presence or absence of siblings or otherwise
    related declarations.
  * Add multiple output formats for the linter messages, to ease integration
    with text editors and other tools.
  * Add command line options for ignoring certain rules.
  * Ignore linter errors when preceded by a specially formatted comment.
- * Use the QuickCheck library for testing the codebase
+ * Use the QuickCheck library for testing the codebase.
 
 
-# Futher research
+# Further research
 
 The author would like to explore more idiomatic alternatives for constructing
 linter rules. The `hlint` and `shellcheck` projects could prove useful for this
