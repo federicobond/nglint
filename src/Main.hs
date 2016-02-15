@@ -1,4 +1,5 @@
 import System.Environment
+import System.Exit
 import Text.Parsec
 import Text.Parsec.Error
 import NgLint.Parser
@@ -19,5 +20,13 @@ main = do
 
             let config = parse configFile fileName content
             case config of
-                Left error -> print error
-                Right (Config decls) -> sequence_ $ map (printLintMessage content) $ lint decls
+                Left error -> do
+                    print error
+                    exitFailure
+                Right (Config decls) ->
+                    if null messages
+                        then exitSuccess
+                        else do
+                            sequence_ $ map (printLintMessage content) messages
+                            exitFailure
+                    where messages = lint decls
