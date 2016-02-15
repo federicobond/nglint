@@ -27,6 +27,6 @@ main = do
                     if null messages
                         then exitSuccess
                         else do
-                            sequence_ $ map (printLintMessage content) messages
+                            mapM_ (printLintMessage content) messages
                             exitFailure
                     where messages = lint decls
