@@ -9,7 +9,7 @@ files, written in Haskell. **nginx** is a widely used HTTP and reverse proxy
 server. The motivation for this project was to further the author's understanding
 of functional parsing techniques, and apply them in a real-world context.
 
-# Syntax definition
+# Syntax definition
 
 The **nginx** configuration uses a C-like syntax consisting of directives,
 which let you specify the behaviour of the server, and blocks, which define
