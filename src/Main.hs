@@ -20,4 +20,4 @@ main = do
             let config = parse configFile fileName content
             case config of
                 Left error -> print error
-                Right (Config decls) -> putStr . unlines . map show $ lint decls
+                Right (Config decls) -> sequence_ $ map (printLintMessage content) $ lint decls

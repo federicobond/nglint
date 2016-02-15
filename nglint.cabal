@@ -62,6 +62,7 @@ executable nglint
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.8 && <4.9
                      , parsec >=3.1.9 && <4.0
+                     , ansi-terminal >=0.6.2.3 && <0.6.3
   
   -- Directories containing source files.<4
   hs-source-dirs:      src
