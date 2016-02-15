@@ -4,8 +4,10 @@ import Text.Parsec.Error
 import NgLint.Parser
 import NgLint.Linter
 
+
 printUsage :: IO ()
 printUsage = putStrLn "usage: nglint file.conf"
+
 
 main = do
     params <- getArgs
@@ -17,5 +19,5 @@ main = do
 
             let config = parse configFile fileName content
             case config of
-                Left error -> putStrLn $ show error
-                Right (Config decls) -> putStr . unlines . (map show) $ lint decls
+                Left error -> print error
+                Right (Config decls) -> putStr . unlines . map show $ lint decls

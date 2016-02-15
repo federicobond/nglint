@@ -1,6 +1,8 @@
 module NgLint.Parser where
 
 import Text.Parsec
+import qualified Text.Parsec.Token as P
+import Text.Parsec.Language
 import Text.Parsec.String
 
 data Decl =
@@ -15,13 +17,31 @@ data Config = Config [Decl] deriving (Show)
 configFile :: Parser Config
 configFile = do
     spaces
-    lst <- decl `sepEndBy` spaces
+    lst <- decl `sepBy` spaces
+    spaces
     eof
     return $ Config lst
 
 
+nginxDef = emptyDef
+    { P.identStart     = letter <|> char '_'
+    , P.identLetter    = alphaNum <|> char '_' 
+    , P.opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
+    }
+
+
+lexer = P.makeTokenParser nginxDef
+
+parens      = P.parens lexer
+braces      = P.braces lexer
+identifier  = P.identifier lexer
+
+
 decl :: Parser Decl
-decl = try comment <|> try ifDecl <|> try block <|> try directive
+decl = try comment <|> try ifDecl <|> try directive <|> try block
+
+
+arg = many1 (alphaNum <|> oneOf "\"*_-+/.")
 
 
 -- http://stackoverflow.com/questions/34342911/parsec-parse-nested-code-blocks
@@ -34,21 +54,15 @@ sepBy1Try p sep = do
 sepByTry p sep = sepBy1Try p sep <|> return []
 
 
-identifier = many1 (alphaNum <|> char '_')
-
-
 block :: Parser Decl
 block = do
     pos <- getPosition
     name <- identifier
     spaces
-    args <- many1 (alphaNum <|> oneOf "\"*_-+/.") `sepByTry` spaces
+    args <- arg `sepByTry` spaces
     spaces
-    char '{'
+    decls <- braces (decl `sepEndBy` spaces)
     spaces
-    decls <- decl `sepByTry` spaces
-    spaces
-    char '}'
     return $ Block pos name args decls
     <?> "block"
 
@@ -65,19 +79,12 @@ comment = do
 ifDecl :: Parser Decl
 ifDecl = do
     pos <- getPosition
-    string "if"
+    string "if" <?> "if"
     spaces
-    char '('
+    expr <- parens identifier
     spaces
-    expr <- manyTill anyChar (char ')')
+    decls <- braces (decl `sepEndBy` spaces)
     spaces
-    char ')'
-    spaces
-    char '{'
-    spaces
-    decls <- decl `sepByTry` spaces
-    spaces
-    char '}'
     return $ IfDecl pos expr decls
 
 
@@ -86,7 +93,8 @@ directive = do
     pos <- getPosition
     name <- identifier
     spaces
-    args <- many1 (alphaNum <|> oneOf "\"*_-+/.") `sepBy` spaces
+    args <- arg `sepBy` spaces
+    spaces
     char ';'
     return $ Directive pos name args
     <?> "directive"
