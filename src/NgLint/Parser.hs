@@ -1,9 +1,9 @@
 module NgLint.Parser where
 
 import Text.Parsec
-import qualified Text.Parsec.Token as P
 import Text.Parsec.Language
 import Text.Parsec.String
+import qualified Text.Parsec.Token as P
 
 data Decl =
     Comment SourcePos String

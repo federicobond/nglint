@@ -1,8 +1,8 @@
 module NgLint.Rules where
 
 import Control.Arrow ((>>>))
-import NgLint.Parser
 import NgLint.Matchers
+import NgLint.Parser
 
 
 noRootInsideLocation :: Rule
