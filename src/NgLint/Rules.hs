@@ -25,3 +25,9 @@ serverTokensOn :: Rule
 serverTokensOn = mkRule NG004 $
     matchDirective "server_tokens" >>>
     matchArg "on"
+
+
+tlsv1Enabled :: Rule
+tlsv1Enabled = mkRule NG005 $
+    matchDirective "ssl_protocols" >>>
+    matchArg "TLSv1"

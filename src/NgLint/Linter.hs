@@ -12,25 +12,32 @@ import System.Console.ANSI
 rules = [ noRootInsideLocation
         , ifIsEvil
         , sslv3Enabled
-        , serverTokensOn ]
+        , serverTokensOn
+        , tlsv1Enabled ]
 
 
 lint :: [Decl] -> [LintMessage]
 lint decls = sort $ concatMap (\rule -> rule decls) rules
 
 
-printLintMessage :: String -> LintMessage -> IO ()
-printLintMessage contents (LintMessage pos code) = do
-    let lns = lines contents
-
-    setSGR [SetConsoleIntensity BoldIntensity]
-    putStrLn $ "In " ++ sourceName pos ++ ", line " ++ show (sourceLine pos) ++ ":"
-    setSGR [Reset]
-
-    putStrLn (lns !! (sourceLine pos - 1))
+printMessage :: LintMessage -> IO ()
+printMessage (LintMessage pos code) = do
     setSGR [SetColor Foreground Vivid Yellow]
     putStr $ replicate (sourceColumn pos - 1) ' '
     putStrLn ("^-- " ++ show code)
     setSGR [Reset]
 
+
+printGroupedMessages :: String -> [LintMessage] -> IO ()
+printGroupedMessages contents messageList = do
+    let lns = lines contents
+        (LintMessage pos _) = head messageList
+
+
+    setSGR [SetConsoleIntensity BoldIntensity]
+    putStrLn $ "In " ++ sourceName pos ++ ", line " ++ show (sourceLine pos) ++ ":"
+    setSGR [Reset]
+    putStrLn (lns !! (sourceLine pos - 1))
+
+    mapM_ printMessage messageList
     putChar '\n'

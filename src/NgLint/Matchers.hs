@@ -5,7 +5,7 @@ import NgLint.Parser
 import Text.Parsec.Pos (SourcePos)
 
 
-data ErrorCode = NG001 | NG002 | NG003 | NG004 deriving (Eq)
+data ErrorCode = NG001 | NG002 | NG003 | NG004 | NG005 deriving (Eq)
 data LintMessage = LintMessage SourcePos ErrorCode deriving (Eq)
 
 instance Show LintMessage where
@@ -18,7 +18,8 @@ instance Show ErrorCode where
     show NG001 = "NG001: root directive inside location block"
     show NG002 = "NG002: if can be replaced with something else"
     show NG003 = "NG003: enabling SSLv3 leaves you vulnerable to POODLE attack"
-    show NG004 = "NG003: enabling server_tokens leaks your web server version number"
+    show NG004 = "NG004: enabling server_tokens leaks your web server version number"
+    show NG005 = "NG005: enabling TLSv1 leaves you vulnerable to CRIME attack"
 
 
 type Matcher = [Decl] -> [Decl]

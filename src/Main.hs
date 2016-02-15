@@ -1,3 +1,4 @@
+import Data.List
 import System.Environment
 import System.Exit
 import Text.Parsec
@@ -20,9 +21,11 @@ lintFile fileName = do
             print error
             return []
         Right (Config decls) -> do
-            mapM_ (printLintMessage content) messages
+            mapM_ (printGroupedMessages content) messageGroups
             return messages
             where messages = lint decls
+                  messageGroups = groupBy eq messages
+                  eq (LintMessage p1 _) (LintMessage p2 _) = p1 == p2
 
 
 main :: IO ()
