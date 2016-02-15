@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd "$(dirname "$0")/../doc" || exit
+
+pandoc --latex-engine=xelatex \
+       --bibliography=bibliography.bib \
+       --filter pandoc-citeproc \
+       --highlight-style=kate \
+       -o report.pdf report.md metadata.yaml
