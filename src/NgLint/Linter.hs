@@ -24,7 +24,7 @@ printLintMessage contents (LintMessage pos msg)= do
     let lns = lines contents
 
     setSGR [SetConsoleIntensity BoldIntensity]
-    putStrLn $ "In " ++ sourceName pos ++ ", line " ++ (show $ sourceLine pos) ++ ":"
+    putStrLn $ "In " ++ sourceName pos ++ ", line " ++ show (sourceLine pos) ++ ":"
     setSGR [Reset]
 
     putStrLn (lns !! (sourceLine pos - 1))
