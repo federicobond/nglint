@@ -12,7 +12,7 @@ noRootInsideLocation :: Rule
 noRootInsideLocation =
     matchBlock "location" >>>
     matchDirective "root" >>>
-    label "root inside location"
+    label "root directive inside location"
 
 
 ifIsEvil :: Rule
