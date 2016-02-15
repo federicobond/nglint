@@ -41,7 +41,7 @@ decl :: Parser Decl
 decl = try comment <|> try ifDecl <|> try directive <|> try block
 
 
-arg = many1 (alphaNum <|> oneOf "\"*_-+/.'$[]~\\:^()|=")
+arg = many1 (alphaNum <|> oneOf "\"*_-+/.'$[]~\\:^()|=?!")
 
 
 -- http://stackoverflow.com/questions/34342911/parsec-parse-nested-code-blocks
@@ -93,8 +93,7 @@ directive = do
     pos <- getPosition
     name <- identifier
     spaces
-    args <- arg `sepBy` spaces
-    spaces
+    args <- arg `sepEndBy` spaces
     char ';'
     return $ Directive pos name args
     <?> "directive"
