@@ -43,6 +43,17 @@ http {
 }
 ```
 
+# Preliminary research
+
+The research for this project included reading the original `parsec` paper,
+several articles and tutorials on Monads and the documentation of more than
+a dozen other libraries.
+
+Other topics studied, whose understanding did not contribute much to this
+project, were Functional Reactive Programming, Arrows and the Template Haskell
+extension to GHC.
+
+
 # Design Considerations
 
 The project has two main components, a parser and a linter. The parser is
@@ -64,16 +75,6 @@ at hand and kept the mental overhead at a reasonable level.
 The error output from `ghc` also proved hard to understand at first, for someone
 accustomed to traditional stack traces or syntax errors in imperative /
 object-oriented code, but with practice they became quite natural.
-
-# Preliminary research
-
-The research for this project included reading the original `parsec` paper,
-several articles and tutorials on Monads and the documentation of more than
-a dozen other libraries.
-
-Other topics studied, whose understanding did not contribute much to this
-project, were Functional Reactive Programming, Arrows and the Template Haskell
-extension to GHC.
 
 # Future extensions
 
