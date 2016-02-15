@@ -5,31 +5,23 @@ import NgLint.Parser
 import NgLint.Matchers
 
 
-type Rule = [Decl] -> [LintMessage]
-
-
 noRootInsideLocation :: Rule
-noRootInsideLocation =
+noRootInsideLocation = mkRule NG001 $
     matchBlock "location" >>>
-    matchDirective "root" >>>
-    label "root directive inside location"
+    matchDirective "root"
 
 
 ifIsEvil :: Rule
-ifIsEvil =
-    matchIfDecl >>>
-    label "consider replacing if with something else"
+ifIsEvil = mkRule NG002 matchIfDecl
 
 
 sslv3Enabled :: Rule
-sslv3Enabled =
+sslv3Enabled = mkRule NG003 $
     matchDirective "ssl_protocols" >>>
-    matchArg "SSLv3" >>>
-    label "disable SSLv3 to prevent POODLE attacks"
+    matchArg "SSLv3"
 
 
 serverTokensOn :: Rule
-serverTokensOn =
+serverTokensOn = mkRule NG004 $
     matchDirective "server_tokens" >>>
-    matchArg "on" >>>
-    label "server_tokens leaks your web server version number"
+    matchArg "on"

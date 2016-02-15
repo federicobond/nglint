@@ -20,7 +20,7 @@ lint decls = sort $ concatMap (\rule -> rule decls) rules
 
 
 printLintMessage :: String -> LintMessage -> IO ()
-printLintMessage contents (LintMessage pos msg)= do
+printLintMessage contents (LintMessage pos code) = do
     let lns = lines contents
 
     setSGR [SetConsoleIntensity BoldIntensity]
@@ -30,7 +30,7 @@ printLintMessage contents (LintMessage pos msg)= do
     putStrLn (lns !! (sourceLine pos - 1))
     setSGR [SetColor Foreground Vivid Yellow]
     putStr $ replicate (sourceColumn pos - 1) ' '
-    putStrLn ("^-- " ++ msg)
+    putStrLn ("^-- " ++ show code)
     setSGR [Reset]
 
     putChar '\n'

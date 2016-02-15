@@ -1,18 +1,33 @@
 module NgLint.Matchers where
 
+import Control.Arrow ((>>>))
 import NgLint.Parser
 import Text.Parsec.Pos (SourcePos)
 
 
-data LintMessage = LintMessage SourcePos String deriving (Eq)
+data ErrorCode = NG001 | NG002 | NG003 | NG004 deriving (Eq)
+data LintMessage = LintMessage SourcePos ErrorCode deriving (Eq)
 
 instance Show LintMessage where
-    show (LintMessage pos str) = show pos ++ ": " ++ str
+    show (LintMessage pos code) = show pos ++ ": " ++ show code
 
 instance Ord LintMessage where
     compare (LintMessage p1 _) (LintMessage p2 _) = compare p1 p2
 
+instance Show ErrorCode where
+    show NG001 = "NG001: root directive inside location block"
+    show NG002 = "NG002: if can be replaced with something else"
+    show NG003 = "NG003: enabling SSLv3 leaves you vulnerable to POODLE attack"
+    show NG004 = "NG003: enabling server_tokens leaks your web server version number"
+
+
 type Matcher = [Decl] -> [Decl]
+
+type Rule = [Decl] -> [LintMessage]
+
+
+mkRule :: ErrorCode -> Matcher -> Rule
+mkRule code matcher = matcher >>> label code
 
 
 matchBlock :: String -> Matcher
@@ -45,9 +60,9 @@ matchArg str = filter hasArg
           hasArg _ = False
 
 
-label :: String -> [Decl] -> [LintMessage]
-label msg = map buildMessage
-    where buildMessage decl = LintMessage (getPos decl) msg
+label :: ErrorCode -> [Decl] -> [LintMessage]
+label code = map buildMessage
+    where buildMessage decl = LintMessage (getPos decl) code
           getPos (Comment pos _) = pos
           getPos (Block pos _ _ _) = pos
           getPos (Directive pos _ _) = pos
