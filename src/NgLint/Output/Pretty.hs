@@ -18,7 +18,6 @@ printGroupedMessages contents messageList = do
     let lns = lines contents
         (LintMessage pos _) = head messageList
 
-
     setSGR [SetConsoleIntensity BoldIntensity]
     putStrLn $ "In " ++ sourceName pos ++ ", line " ++ show (sourceLine pos) ++ ":"
     setSGR [Reset]
