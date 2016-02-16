@@ -1,6 +1,6 @@
 module NgLint.Output.Pretty where
 
-import NgLint.Matchers
+import NgLint.Messages
 import System.Console.ANSI
 import Text.Parsec.Pos
 

@@ -2,7 +2,7 @@ module NgLint.Linter where
 
 import Data.List
 import Data.Maybe
-import NgLint.Matchers
+import NgLint.Messages
 import NgLint.Parser
 import NgLint.Rules
 

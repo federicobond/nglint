@@ -1,7 +1,7 @@
 module NgLint.Output.Gcc where
 
 import Data.List
-import NgLint.Matchers
+import NgLint.Messages
 import System.Console.ANSI
 import Text.Parsec.Pos
 

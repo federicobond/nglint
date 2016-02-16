@@ -2,7 +2,7 @@ import Control.Monad
 import Data.List
 import Data.Version (showVersion)
 import NgLint.Linter
-import NgLint.Matchers
+import NgLint.Messages
 import NgLint.Parser
 import Paths_nglint (version)
 import System.Console.GetOpt

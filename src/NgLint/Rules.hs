@@ -2,7 +2,14 @@ module NgLint.Rules where
 
 import Control.Arrow ((>>>))
 import NgLint.Matchers
+import NgLint.Messages
 import NgLint.Parser
+
+type Rule = [Decl] -> [LintMessage]
+
+
+mkRule :: ErrorCode -> Matcher -> Rule
+mkRule code matcher = matcher >>> label code
 
 
 noRootInsideLocation :: Rule
