@@ -77,15 +77,16 @@ main = do
     args <- getArgs
     let (opts, nonOpts, errors) = getOpt Permute options args
         linterConfig = configFromOpts defaultConfig opts
-    case length nonOpts of
-        0 -> printUsage
-        _ -> do
-            let printMessages = getFormatter $ outputFormat linterConfig
 
-            totalMessages <- mapM (lintFile printMessages) nonOpts
-            let num = length $ concat totalMessages
+    when (length nonOpts == 0) $
+        printUsage >> exitSuccess
 
-            when (outputFormat linterConfig == Pretty) $
-                putStrLn $ show num ++ " hints."
+    let printMessages = getFormatter $ outputFormat linterConfig
 
-            if num > 0 then exitFailure else exitSuccess
+    totalMessages <- mapM (lintFile printMessages) nonOpts
+    let num = length $ concat totalMessages
+
+    when (outputFormat linterConfig == Pretty) $
+        putStrLn $ show num ++ " hints."
+
+    if num > 0 then exitFailure else exitSuccess
