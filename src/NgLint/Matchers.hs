@@ -19,6 +19,7 @@ matchDirective name = concatMap matches
     where matches directive@(Directive _ dname _) =
               [directive | dname == name]
           matches (Block _ _ _ decls) = matchDirective name decls
+          matches (IfDecl _ _ decls) = matchDirective name decls
           matches _ = []
 
 
