@@ -5,5 +5,6 @@ cd "$(dirname "$0")/../doc" || exit
 pandoc --latex-engine=xelatex \
        --bibliography=bibliography.bib \
        --filter pandoc-citeproc \
+       --template=template.tex \
        --highlight-style=kate \
-       -o report.pdf report.md
+       -s report.md metadata.yaml -o report.pdf

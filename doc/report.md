@@ -1,7 +1,3 @@
-% nglint: nginx configuration file linter written in Haskell
-% Federico Bond
-% February 15, 2016
-
 # Introduction
 
 The following report describes the design of a linter for **nginx** configuration
@@ -19,7 +15,8 @@ A directive consists of an identifier followed by a list of arguments and a
 semicolon.
 
 A block consists of an identifier followed by an optional list of
-arguments and a list of blocks or directives surrounded by braces.
+arguments and a list of blocks or directives surrounded by braces. Blocks can
+be nested inside one another.
 
 An example configuration file is shown below:
 
@@ -45,7 +42,7 @@ http {
 
 # Preliminary research
 
-The research for this project included reading the original `parsec` paper,
+The research for this project included reading the original `parsec` paper [@LM:2001],
 several articles and tutorials on Monads and the documentation of more than
 a dozen other libraries.
 
@@ -66,25 +63,23 @@ An additional library, `ansi-terminal`, was used for colored console output.
 
 # Difficulties encountered
 
-The most difficult part of this project  was to find a proper abstraction for
-constructing linter rules, which avoided unnecessary boilerplate. The author
-considered the use of Monads, Zippers and Traversable, but finally settled for
-simple composition of filter functions, which proved good enough for the task
-at hand and kept the mental overhead at a reasonable level.
+The most difficult part of this project was to find a proper abstraction for
+constructing linter rules, which avoided unnecessary boilerplate. I
+considered the use of Monads, Zippers and the `Traversable` type class, but finally
+settled for simple composition of filter functions, which proved good enough
+for the task at hand and kept mental overhead at a reasonable level.
 
-The error output from `ghc` also proved hard to understand at first, for someone
-accustomed to traditional stack traces or syntax errors in imperative /
-object-oriented code, but with practice they became quite natural.
+The error output from `ghc` also proved hard to understand at first, especially
+for someone used to traditional stack traces and syntax errors in imperative /
+object-oriented code. With practice it became quite natural, though.
 
 # Future extensions
 
-Throughout the duration of the project, the author kept a To Do list with ideas
+Throughout the duration of the project, I kept a To Do list with ideas
 for future extensions. A sample of them has been reproduced below:
 
  * Add rules which depend on the presence or absence of siblings or otherwise
    related declarations.
- * Add multiple output formats for the linter messages, to ease integration
-   with text editors and other tools.
  * Add command line options for ignoring certain rules.
  * Ignore linter errors when preceded by a specially formatted comment.
  * Use the QuickCheck library for testing the codebase.
@@ -92,25 +87,24 @@ for future extensions. A sample of them has been reproduced below:
 
 # Further research
 
-The author would like to explore more idiomatic alternatives for constructing
-linter rules. The `hlint` and `shellcheck` projects could prove useful for this
-task.
-
-The author would also like to deepen his understanding of Monad Transformers,
-which appear useful for cleaning up the highly nested code in the `main` function.
+I would like to explore more idiomatic alternatives for constructing
+linter rules. The `hlint` and `shellcheck` projects might be useful for this
+task. I would also like to deepen my understanding of Monad Transformers,
+which appear useful for reducing the nesting of code and improving error
+handling.
 
 
 # Conclusions
 
-The author of this project had never written a complete program in Haskell
-before. The experience proved highly satisfactory and encouraged him to use
-Haskell and other functional programming languages like Elm and PureScript
-in future scenarios.
+I had never written a complete program in Haskell before. The experience proved
+highly valuable and encouraged me to use Haskell and other pure functional
+programming languages like Elm and PureScript in future scenarios. I was
+surprised at how easily it was to reason about the code at hand.
 
-Having said that, the state of documentation in the Haskell ecosystem leaved
-much to be desired. The author found the need to read academic papers to
-understand how to use each library a bit tedious, but grew accustomed to it
-over time. Many libraries could benefit from a concise README with sample
+Having said that, the state of documentation in the Haskell ecosystem leaves
+much to be desired. Having to read academic papers to understand how
+to use each library is a bit tedious, but you grow used to it over time.
+Many libraries could benefit from a concise README with sample
 code and common caveats, specially considering that the heavy use of types in
 Haskell makes it easy to find what you need from there.
 
