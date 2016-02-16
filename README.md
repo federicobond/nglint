@@ -1,15 +1,26 @@
 nglint
 ======
 
-A work-in-progress linter for nginx configuration files. Written in Haskell.
+A linter for nginx configuration files.
 
+## Usage
 
-To Do
-=====
+````
+nglint nginx.conf
+````
 
- * Generate `nglint` executable on cabal install
- * Make nginx parser more resilient. Fix bugs
- * Test with QuickCheck (?)
- * Use a more flexible scheme than reverse function composition for defining rules
- * Add more rules
- * Move rule messages to an ADT
+`nglint` comes with two output formats. The default, pretty and a condensed
+gcc-like format useful for integrating into other tools. To configure the
+output format use the `-f` / `--format` flag.
+
+````
+nglint --format=gcc nginx.conf
+````
+
+## License
+
+Code is licensed under MIT.
+
+## Author
+
+`nglint` was crafted with love by [Federico Bond](https://github.com/federicobond).
