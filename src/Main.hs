@@ -70,7 +70,7 @@ main = do
     let (opts, nonOpts, errors) = getOpt Permute options args
         linterConfig = configFromOpts defaultConfig opts
 
-    when (length nonOpts == 0) $
+    when (null nonOpts) $
         printUsage >> exitSuccess
 
     let printMessages = getFormatter $ outputFormat linterConfig
