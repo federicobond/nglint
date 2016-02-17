@@ -41,8 +41,7 @@ braces      = P.braces lexer
 identifier  = P.identifier lexer
 
 decl :: Parser Decl
-decl = try comment <|> try ifDecl <|> try directive <|> try block
-
+decl = choice $ map try [comment, ifDecl, directive, block]
 
 arg = many1 (alphaNum <|> oneOf "\"*_-+/.'$[]~\\:^()|=?!")
 
