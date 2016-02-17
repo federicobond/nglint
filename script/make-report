@@ -2,9 +2,4 @@
 
 cd "$(dirname "$0")/../doc" || exit
 
-pandoc --latex-engine=xelatex \
-       --bibliography=bibliography.bib \
-       --filter pandoc-citeproc \
-       --template=template.tex \
-       --highlight-style=kate \
-       -s report.md metadata.yaml -o report.pdf
+xelatex report.tex

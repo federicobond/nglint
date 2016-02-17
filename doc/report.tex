@@ -1,0 +1,326 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{xltxtra}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+\else % if luatex or xelatex
+	% \usepackage{fontspec}
+  % \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={nglint: nginx configuration file linter},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{biblatex}
+
+\addbibresource{bibliography.bib}
+\usepackage{listings}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\usepackage{verbatim}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+
+\setmonofont{FiraCode-Regular}
+
+\lstset{
+	aboveskip={1.5\baselineskip},
+	backgroundcolor=\color{white},
+	basicstyle=\scriptsize\ttfamily,
+	breaklines=true,
+	captionpos=b,
+	columns=fixed,
+	commentstyle=\color[rgb]{0,0.2,0},
+	extendedchars=true,
+	frame=none,
+	keywordstyle=\color[rgb]{0,0,1},
+	language=Haskell,
+	numbers=left,
+	numbersep=5pt,
+	numberstyle=\tiny\ttfamily\color[rgb]{0.5,0.5,0.5},
+	prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	stringstyle=\color[rgb]{0,0.6,0},
+	tabsize=4,    
+	upquote=true,
+	title=\lstname,
+}
+
+
+\title{nglint: nginx configuration file linter}
+\providecommand{\subtitle}[1]{}
+\subtitle{Final Course Assignment Report}
+\author{Federico Bond \\
+\texttt{\href{mailto:fbond@itba.edu.ar}{fbond@itba.edu.ar}} }
+\date{February 15, 2016}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}\label{introduction}
+
+The following report describes the design of a linter for \textbf{nginx}
+configuration files, written in Haskell as final course project for the
+Functional Programming course at ITBA.
+
+Linters are widely used in the software industry. These tools run static
+analysis on code to pinpoint errors and potential trouble spots. They
+can be executed manually or configured to run automatically inside a
+Continuous Integration server, to ensure that no developer introduces new
+issues.
+
+Several linters have been written in Haskell before. The most famous
+outside the Haskell ecosystem is
+\href{http://www.shellcheck.net/}{Shellcheck}, which finds
+problematic constructs in shell scripts. It is worth mentioning that these
+tools can also serve an educational purpose, providing contextual advice
+to the user in order to improve his or her code. Another known linter is
+\href{https://github.com/ndmitchell/hlint}{HLint}, which was used in
+this project and provided useful suggestions for simplifying some of the code.
+
+\section{The \textbf{nginx} reverse proxy}\label{nginx}
+
+\textbf{nginx} is a widely used HTTP and reverse proxy server. It can
+serve static files over the web and/or proxy web applications, among
+other things. It is considered one of the fastest HTTP servers around, and
+companies as big as Automattic (which owns \href{https://wordpress.com/}{WordPress.com})
+use \textbf{nginx} to power their platforms.
+
+Configuring an \textbf{nginx} server can seem daunting at first. There
+are hundreds of options and some of them have grave security
+consequences. Novice users could benefit from a tool that made helpful
+contextual suggestions in order to harden an improve their server configuration.
+
+\subsection{Configuration syntax definition}\label{syntax-definition}
+
+The \textbf{nginx} configuration uses a C-like syntax consisting of
+directives, which let you specify the behaviour of the server, and
+blocks, which define new contexts where these directives apply. An
+example configuration file is shown below:
+
+\begin{lstlisting}[language=,basicstyle=\ttfamily]
+user www-data;
+pid /var/run/nginx.pid;
+
+events {
+  worker_connections 2048;
+  use epoll;
+}
+
+http {
+  # default http server
+  server {
+    root /srv/website;
+  }
+}
+\end{lstlisting}
+
+In this example, there are two blocks, \texttt{events} and
+\texttt{http}, and several directives such as \texttt{user} and
+\texttt{worker\_connections}.
+
+A simplified version of this grammar in extended Backus-Naur form is
+provided below:
+
+\begin{verbatim}
+<config> ::= <declaration>*
+<declaration> ::= <directive> | <block>
+<directive> ::= <identifier> <arg>* ';'
+<block> ::= <identifier> <arg>* '{' <declaration>* '}'
+<identifier> ::= <alpha> (<alpha-num> | '_')*
+\end{verbatim}
+
+\section{Preliminary Research}\label{preliminary-research}
+
+My first task was researching the topic of punctional parsing.
+Many tools exist to build parsers. Lex and Yacc are two very popular
+ones that have been around for a very long time. Parsing is usually
+divided into two steps. First, a lexer turns a byte stream from a source fileinto a
+stream of tokens, and then a proper parser turns this stream of tokens
+into an Abstract Syntax Tree (AST) which is a representation of the
+structure of the source file inside the program.
+
+Traditional tools for building parsers use their own syntax to describe
+the language grammar and the ways that constructs can be combined together
+is predetermined by the tool. One alternative is to use Functional parser
+combinators, a topic that has gathered the attention of researchers for
+many years. These combinators are first-class values within the host language,
+which opens the posibility to much richer composition.
+
+In 2001, Daan Leijen and Erik Meijer introduced Parsec, a parser combinator
+library for Haskell that was robust enough to be used for real-world projects,
+unlike many of the previous implementations, which suffered from space leaks
+or inability to report precise error messages\footnote{\url{http://research.microsoft.com/en-us/um/people/daan/download/papers/parsec-paper.pdf}}.
+Parsec quickly gained adoption and is now used in more than 700 projects
+published in Hackage, the most used Haskell package archive.
+
+The parser combinators from \texttt{parsec} work inside the \texttt{Parser} monad.
+A typical parser looks like this:
+
+\begin{lstlisting}[basicstyle=\ttfamily]
+identifier :: Parser String
+identifier = do
+  c <- identStart
+  cs <- many identLetter
+  return (c:cs)
+\end{lstlisting}
+
+This approach makes it really easy to build more complex parsers by combining
+simpler ones. For more realistic examples, take a look at the code Appendix.
+
+\section{Program Architecture}\label{program-architecture}
+
+The linting process can be divided into three steps:
+
+\begin{verbatim}
+        Parse -> Lint -> Output
+\end{verbatim}
+
+The parsing step takes the file contents as input and produces an
+Abstract Syntax Tree (AST) as output.
+
+Once the parser has finished its job, the linter will apply each one of
+the rules to the AST, returning a list of hints. Each rule needs to
+match certain declarations against the syntax tree. To do this easily, a
+set of matchers was built that can be composed together via
+\texttt{\textgreater{}\textgreater{}\textgreater{}} (recall that
+\texttt{f\ \textgreater{}\textgreater{}\textgreater{}\ g\ =\ g\ .\ f}).
+The reader may be curious as to why it is necessary to compose these matchers
+in reverse. The answer is that we want to apply the functions in the order in
+which they are written. Let's take a look at a simple example:
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[basicstyle=\ttfamily]
+matchRootInsideLocation :: Matcher
+matchRootInsideLocation =
+    matchBlock "location" >>>
+    matchDirective "root"
+\end{lstlisting}
+\end{minipage}
+
+We want to find the blocks named \texttt{location}, which contain a directive
+named \texttt{root} inside. The first function will take a list of directives
+and return only the location blocks. The second must then filter and find
+the directives named \texttt{root}. This style of composition reads more
+natural than:
+
+\begin{lstlisting}[basicstyle=\ttfamily]
+matchRootInsideLocation :: Matcher
+matchRootInsideLocation =
+  matchDirective "root" . matchBlock "location"
+\end{lstlisting}
+
+Finally, we pass the list of hints to a formatter, which in the case of
+\textbf{nglint} can be configured via command-line options. The
+\texttt{ansi-terminal}\footnote{\url{https://hackage.haskell.org/package/ansi-terminal-0.6.2.3}}
+library was used for colored console output.
+
+\section{Difficulties encountered}\label{difficulties-encountered}
+
+The most difficult part of this project was to find a proper abstraction
+for constructing linter rules, which avoided unnecessary boilerplate. I
+considered the use of Monads, Zippers and the \texttt{Traversable} type
+class, but finally settled for simple composition of filter functions,
+which proved good enough for the task at hand and kept mental overhead
+at a reasonable level.
+
+The error output from \texttt{ghc} also proved hard to understand at
+first, especially for someone used to traditional stack traces and
+syntax errors in imperative / object-oriented code. With practice it
+became quite natural, though.
+
+\section{Future extensions}\label{future-extensions}
+
+Throughout the duration of the project, I kept a To Do list with ideas
+for future extensions. A sample of them has been reproduced below:
+
+\begin{itemize}
+\tightlist
+\item
+  Add rules which depend on the presence or absence of siblings or
+  otherwise related declarations.
+\item
+  Add command line options for ignoring certain rules.
+\item
+  Ignore linter errors when preceded by a specially formatted comment.
+\item
+  Use the QuickCheck library for testing the codebase.
+\end{itemize}
+
+\section{Further research}\label{further-research}
+
+I would like to explore more idiomatic alternatives for constructing
+linter rules. The \texttt{hlint} and \texttt{shellcheck} projects might
+be useful for this task. I would also like to deepen my understanding of
+Monad Transformers, which appear useful for reducing the nesting of code
+and improving error handling.
+
+\section{Conclusions}\label{conclusions}
+
+I had never written a complete program in Haskell before. The experience
+proved highly valuable and encouraged me to use Haskell and other pure
+functional programming languages like Elm and PureScript in future
+scenarios. I was surprised at how easily it was to reason about the code
+at hand.
+
+Having said that, the state of documentation in the Haskell ecosystem
+leaves much to be desired. Having to read academic papers to understand
+how to use each library is a bit tedious, but you grow used to it over
+time. Many libraries could benefit from a concise README with sample
+code and common caveats, specially considering that the heavy use of
+types in Haskell makes it easy to find what you need from there.
+
+\section{Bibliography}\label{bibliography}
+
+Daan Leijen, Erik Meijer. 2001. “Parsec: Direct Style Monadic Parser Combinators
+for the Real World.” \url{http://research.microsoft.com/en-us/um/people/daan/download/papers/parsec-paper.pdf}.
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\clearpage
+
+\section{Appendix A: Code}\label{appendix-a-code}
+
+\lstinputlisting{../src/Main.hs}
+\lstinputlisting{../src/NgLint/Parser.hs}
+\lstinputlisting{../src/NgLint/Linter.hs}
+\lstinputlisting{../src/NgLint/Messages.hs}
+\lstinputlisting{../src/NgLint/Matchers.hs}
+\lstinputlisting{../src/NgLint/Position.hs}
+\lstinputlisting{../src/NgLint/Rules.hs}
+\lstinputlisting{../src/NgLint/Output/Common.hs}
+\lstinputlisting{../src/NgLint/Output/Gcc.hs}
+\lstinputlisting{../src/NgLint/Output/Pretty.hs}
+
+\end{document}
