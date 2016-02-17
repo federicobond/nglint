@@ -1,9 +1,9 @@
 import Control.Monad
-import Data.List
 import Data.Version (showVersion)
 import NgLint.Linter
 import NgLint.Messages
 import NgLint.Parser
+import NgLint.Output.Common
 import Paths_nglint (version)
 import System.Console.GetOpt
 import System.Environment
@@ -13,17 +13,13 @@ import Text.Parsec.Error
 import qualified NgLint.Output.Pretty as Pretty
 import qualified NgLint.Output.Gcc as Gcc
 
-
 data OutputFormat = Pretty | Gcc deriving (Show, Eq)
-
 data Flag = Format OutputFormat deriving (Show, Eq)
-
 data LinterConfig = LinterConfig
     { outputFormat :: OutputFormat }
 
 defaultConfig = LinterConfig
     { outputFormat = Pretty }
-
 
 printUsage :: IO ()
 printUsage =
@@ -31,9 +27,8 @@ printUsage =
     where header = unlines [ "nglint - nginx configuration file linter"
                            , "version: " ++ showVersion version ]
 
-
-lintFile :: (String -> [LintMessage] -> IO ()) -> FilePath -> IO [LintMessage]
-lintFile formatMessages fileName = do
+lintFile :: Formatter -> FilePath -> IO [LintMessage]
+lintFile format fileName = do
     content <- readFile fileName
     let config = parse configFile fileName content
     case config of
@@ -41,11 +36,9 @@ lintFile formatMessages fileName = do
             print error
             return []
         Right (Config decls) -> do
-            mapM_ (formatMessages content) messageGroups
+            let messages = lint decls
+            format content messages
             return messages
-            where messages = lint decls
-                  messageGroups = groupBy eq messages
-                  eq (LintMessage p1 _) (LintMessage p2 _) = p1 == p2
 
 
 formatp :: Maybe String -> Flag
@@ -68,9 +61,8 @@ configFromOpts config [] = config
 
 
 getFormatter :: OutputFormat -> (String -> [LintMessage] -> IO ())
-getFormatter Pretty = Pretty.printGroupedMessages
-getFormatter Gcc = Gcc.printGroupedMessages
-
+getFormatter Pretty = Pretty.printMessages
+getFormatter Gcc = Gcc.printMessages
 
 main :: IO ()
 main = do

@@ -6,13 +6,11 @@ import NgLint.Messages
 import NgLint.Parser
 import NgLint.Rules
 
-
 rules = [ noRootInsideLocation
         , ifIsEvil
         , sslv3Enabled
         , serverTokensOn
         , tlsv1Enabled ]
-
 
 lint :: [Decl] -> [LintMessage]
 lint decls = sort $ concatMap (\rule -> rule decls) rules
