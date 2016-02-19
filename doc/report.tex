@@ -50,12 +50,12 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows}
 
-\setmonofont{FiraCode-Regular}
+\setmonofont[Scale=MatchLowercase]{Monaco}
 
 \lstset{
 	aboveskip={1.5\baselineskip},
 	backgroundcolor=\color{white},
-	basicstyle=\scriptsize\ttfamily,
+	basicstyle=\ttfamily,
 	breaklines=true,
 	captionpos=b,
 	columns=fixed,
@@ -66,7 +66,7 @@
 	language=Haskell,
 	numbers=left,
 	numbersep=5pt,
-	numberstyle=\tiny\ttfamily\color[rgb]{0.5,0.5,0.5},
+	numberstyle=\scriptsize\ttfamily\color[rgb]{0.5,0.5,0.5},
 	prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
 	showspaces=false,
 	showstringspaces=false,
@@ -129,7 +129,7 @@ directives, which let you specify the behaviour of the server, and
 blocks, which define new contexts where these directives apply. An
 example configuration file is shown below:
 
-\begin{lstlisting}[language=,basicstyle=\ttfamily]
+\begin{lstlisting}[language=]
 user www-data;
 pid /var/run/nginx.pid;
 
@@ -188,7 +188,7 @@ published in Hackage, the most used Haskell package archive.
 The parser combinators from \texttt{parsec} work inside the \texttt{Parser} monad.
 A typical parser looks like this:
 
-\begin{lstlisting}[basicstyle=\ttfamily]
+\begin{lstlisting}
 identifier :: Parser String
 identifier = do
   c <- identStart
