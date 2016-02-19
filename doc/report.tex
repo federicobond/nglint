@@ -50,7 +50,8 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows}
 
-\setmonofont[Scale=MatchLowercase]{Monaco}
+\setmonofont[Scale=MatchLowercase]{Menlo}
+\linespread{1.3}
 
 \lstset{
 	aboveskip={1.5\baselineskip},
@@ -59,7 +60,7 @@
 	breaklines=true,
 	captionpos=b,
 	columns=fixed,
-	commentstyle=\color[rgb]{0,0.2,0},
+	commentstyle=\color[rgb]{0.5,0.5,0.5},
 	extendedchars=true,
 	frame=none,
 	keywordstyle=\color[rgb]{0,0,1},
@@ -97,30 +98,34 @@ Functional Programming course at ITBA.
 Linters are widely used in the software industry. These tools run static
 analysis on code to pinpoint errors and potential trouble spots. They
 can be executed manually or configured to run automatically inside a
-Continuous Integration server, to ensure that no developer introduces new
-issues.
+Continuous Integration server, to ensure that no developer within the
+team introduces new issues.
 
 Several linters have been written in Haskell before. The most famous
 outside the Haskell ecosystem is
 \href{http://www.shellcheck.net/}{Shellcheck}, which finds
-problematic constructs in shell scripts. It is worth mentioning that these
-tools can also serve an educational purpose, providing contextual advice
-to the user in order to improve his or her code. Another known linter is
+problematic constructs in shell scripts. Another well known linter is
 \href{https://github.com/ndmitchell/hlint}{HLint}, which was used in
-this project and provided useful suggestions for simplifying some of the code.
+this project and provided useful suggestions for simplifying some of the code
+written. It is worth mentioning that these
+tools can also serve an educational purpose, providing contextual advice
+to the user in order to improve his or her code. 
 
-\section{The \textbf{nginx} reverse proxy}\label{nginx}
+\section{The \textbf{nginx} server}\label{nginx}
 
 \textbf{nginx} is a widely used HTTP and reverse proxy server. It can
 serve static files over the web and/or proxy web applications, among
 other things. It is considered one of the fastest HTTP servers around, and
-companies as big as Automattic (which owns \href{https://wordpress.com/}{WordPress.com})
-use \textbf{nginx} to power their platforms.
+companies as big as Netflix (streaming video) and Automattic 
+(which owns \href{https://wordpress.com/}{WordPress.com}, one of the biggest
+blogging platforms in the web) use \textbf{nginx} to run their business.
 
-Configuring an \textbf{nginx} server can seem daunting at first. There
-are hundreds of options and some of them have grave security
-consequences. Novice users could benefit from a tool that made helpful
-contextual suggestions in order to harden an improve their server configuration.
+The \textbf{nginx} server is configured via text files following a custom syntax definition
+resembling C code. This sintax makes it really easy to customize most aspects
+of the server behavour, but knowing how the different settings work together
+requires a lot of experience. There are hundreds of options and some of them have grave security
+consequences. Novice users could benefit from a tool that offered helpful
+contextual suggestions in order to harden and improve their server configuration.
 
 \subsection{Configuration syntax definition}\label{syntax-definition}
 
@@ -148,34 +153,33 @@ http {
 
 In this example, there are two blocks, \texttt{events} and
 \texttt{http}, and several directives such as \texttt{user} and
-\texttt{worker\_connections}.
+\texttt{worker\_connections}. A simplified version of this grammar
+is provided below in extended Backus-Naur form:
 
-A simplified version of this grammar in extended Backus-Naur form is
-provided below:
-
-\begin{verbatim}
+\begin{lstlisting}[numbers=none]
 <config> ::= <declaration>*
 <declaration> ::= <directive> | <block>
 <directive> ::= <identifier> <arg>* ';'
 <block> ::= <identifier> <arg>* '{' <declaration>* '}'
-<identifier> ::= <alpha> (<alpha-num> | '_')*
-\end{verbatim}
+\end{lstlisting}
 
 \section{Preliminary Research}\label{preliminary-research}
 
-My first task was researching the topic of punctional parsing.
-Many tools exist to build parsers. Lex and Yacc are two very popular
+My first task was researching the topic of parsing within the
+functional programming paradigm.
+Many tools exist to build parsers for imperative and object-oriented
+languages. Lex and Yacc are two very popular
 ones that have been around for a very long time. Parsing is usually
-divided into two steps. First, a lexer turns a byte stream from a source fileinto a
-stream of tokens, and then a proper parser turns this stream of tokens
+divided into two steps. First, a lexer turns a byte stream from a source file into a
+stream of tokens, and then a parser turns this stream of tokens
 into an Abstract Syntax Tree (AST) which is a representation of the
 structure of the source file inside the program.
 
 Traditional tools for building parsers use their own syntax to describe
 the language grammar and the ways that constructs can be combined together
-is predetermined by the tool. One alternative is to use Functional parser
+is thus predetermined by the tool. One alternative is to use functional parser
 combinators, a topic that has gathered the attention of researchers for
-many years. These combinators are first-class values within the host language,
+many decades. These combinators are first-class values within the host language,
 which opens the posibility to much richer composition.
 
 In 2001, Daan Leijen and Erik Meijer introduced Parsec, a parser combinator
@@ -196,8 +200,12 @@ identifier = do
   return (c:cs)
 \end{lstlisting}
 
-This approach makes it really easy to build more complex parsers by combining
-simpler ones. For more realistic examples, take a look at the code Appendix.
+This parser will combine the \texttt{identStart} and \texttt{identLetter}
+parsers to produce a new parser. Using this technique, we can start with
+a few primitives like \texttt{char 'a'}, which parses a literal \texttt{a},
+and compose them together with combinators like \texttt{many} in order to
+produce more complex parsers. All combination is done within the \texttt{Parser}
+monad.
 
 \section{Program Architecture}\label{program-architecture}
 
@@ -210,50 +218,67 @@ The linting process can be divided into three steps:
 The parsing step takes the file contents as input and produces an
 Abstract Syntax Tree (AST) as output.
 
-Once the parser has finished its job, the linter will apply each one of
-the rules to the AST, returning a list of hints. Each rule needs to
-match certain declarations against the syntax tree. To do this easily, a
-set of matchers was built that can be composed together via
-\texttt{\textgreater{}\textgreater{}\textgreater{}} (recall that
-\texttt{f\ \textgreater{}\textgreater{}\textgreater{}\ g\ =\ g\ .\ f}).
-The reader may be curious as to why it is necessary to compose these matchers
-in reverse. The answer is that we want to apply the functions in the order in
-which they are written. Let's take a look at a simple example:
+Once the parser has finished its job, the linter will apply one by one
+a set of rules to the AST, each returning a list of hints. Rules first
+match certain declarations against the syntax tree and then return a hint
+(which is a linter suggestion) for each one of the matched declarations.
+One way to do this would be to traverse the whole AST for each rule,
+recurring on declarations that contain other declarations inside, like
+blocks and if statements. Fortunately, we don't need to do that if we
+encapsulate the recursion into a set of matchers that can be composed
+together.
 
-\begin{minipage}{\linewidth}
-\begin{lstlisting}[basicstyle=\ttfamily]
+A matcher is thus defined as a function of type \texttt{[Decl] -> [Decl]}.
+Functions that take values from type \texttt{a} and return values of 
+the same type can be composed together trivially. Matcher composition
+is also an associative operation. Matching directive \texttt{d} with
+argument \texttt{a}, inside block \texttt{b} is equivalent to matching
+directive \texttt{d} inside block \texttt{b}, with argument \texttt{a}.
+The reason why we can't use simple function composition via
+tde dot operator is that it would require us to write the matchers
+backwards: the initial list of declarations would be passed as an argument to the
+rightmost function, whose result would become an input to the
+function on its left. Let's take a look at a simple example:
+
+\begin{lstlisting}
 matchRootInsideLocation :: Matcher
 matchRootInsideLocation =
     matchBlock "location" >>>
     matchDirective "root"
+
+-- >>> is defined in Control.Arrow as:
+-- f (>>>) g = g . f
 \end{lstlisting}
-\end{minipage}
 
 We want to find the blocks named \texttt{location}, which contain a directive
-named \texttt{root} inside. The first function will take a list of directives
-and return only the location blocks. The second must then filter and find
+named \texttt{root} inside. The first function will take a list of declarations
+and return only the \texttt{location} blocks. The second must then filter and find
 the directives named \texttt{root}. This style of composition reads more
 natural than:
 
-\begin{lstlisting}[basicstyle=\ttfamily]
+\begin{lstlisting}
 matchRootInsideLocation :: Matcher
 matchRootInsideLocation =
   matchDirective "root" . matchBlock "location"
 \end{lstlisting}
 
-Finally, we pass the list of hints to a formatter, which in the case of
-\textbf{nglint} can be configured via command-line options. The
-\texttt{ansi-terminal}\footnote{\url{https://hackage.haskell.org/package/ansi-terminal-0.6.2.3}}
-library was used for colored console output.
+Finally, we pass the list of hints to a formatter, which takes the
+list and outputs it to the console. The formatter can be configured
+via command-line options. A \texttt{pretty} formatter is configured
+as default for manual usage. This formatter outputs uses ANSI terminal
+colors using the \texttt{ansi-terminal}\footnote{\url{https://hackage.haskell.org/package/ansi-terminal-0.6.2.3}}
+library. Another formatter, named \texttt{gcc} is provided for
+which works better for programmatic consumption or integration into other
+tools.
 
 \section{Difficulties encountered}\label{difficulties-encountered}
 
 The most difficult part of this project was to find a proper abstraction
 for constructing linter rules, which avoided unnecessary boilerplate. I
-considered the use of Monads, Zippers and the \texttt{Traversable} type
-class, but finally settled for simple composition of filter functions,
-which proved good enough for the task at hand and kept mental overhead
-at a reasonable level.
+considered the use of Monads, Zippers and the Traversable type
+class, but finally settled for simple function composition in the form
+of the `(>>>)` operator, which proved good enough for the task
+at hand and kept mental overhead at a reasonable level.
 
 The error output from \texttt{ghc} also proved hard to understand at
 first, especially for someone used to traditional stack traces and
@@ -284,7 +309,9 @@ I would like to explore more idiomatic alternatives for constructing
 linter rules. The \texttt{hlint} and \texttt{shellcheck} projects might
 be useful for this task. I would also like to deepen my understanding of
 Monad Transformers, which appear useful for reducing the nesting of code
-and improving error handling.
+and improving error handling. The \texttt{Parser} monad described earlier,
+for example, is defined as the monad transformer \texttt{ParserT} applied
+to the \texttt{Identity} monad.
 
 \section{Conclusions}\label{conclusions}
 
