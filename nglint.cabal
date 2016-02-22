@@ -21,6 +21,7 @@ library
   exposed-modules:     NgLint.Linter
                      , NgLint.Matchers
                      , NgLint.Messages
+                     , NgLint.Output.Common
                      , NgLint.Output.Gcc
                      , NgLint.Output.Pretty
                      , NgLint.Parser

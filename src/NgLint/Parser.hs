@@ -49,6 +49,8 @@ instance Position Decl where
     getPos (Directive pos _ _) = pos
     getPos (IfDecl pos _ _) = pos
 
+parseConfig = parse configFile
+
 configFile :: Parser Config
 configFile = do
     spaces

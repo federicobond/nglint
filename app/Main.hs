@@ -8,8 +8,6 @@ import Paths_nglint (version)
 import System.Console.GetOpt
 import System.Environment
 import System.Exit
-import Text.Parsec
-import Text.Parsec.Error
 import qualified NgLint.Output.Pretty as Pretty
 import qualified NgLint.Output.Gcc as Gcc
 
@@ -30,7 +28,7 @@ printUsage =
 lintFile :: Formatter -> FilePath -> IO [LintMessage]
 lintFile format fileName = do
     content <- readFile fileName
-    let config = parse configFile fileName content
+    let config = parseConfig fileName content
     case config of
         Left error -> do
             print error
